@@ -96,16 +96,17 @@ class RelightNet(nn.Module):
 
 
 class RetinexNet(nn.Module):
-    def __init__(self):
+    def __init__(self, device):
         super(RetinexNet, self).__init__()
 
-        self.DecomNet  = DecomNet()
-        self.RelightNet= RelightNet()
+        self.device = device
+        self.DecomNet  = DecomNet().to(self.device)
+        self.RelightNet= RelightNet().to(self.device)
 
     def forward(self, input_low, input_high):
         # Forward DecompNet
-        input_low = Variable(torch.FloatTensor(torch.from_numpy(input_low))).cuda()
-        input_high= Variable(torch.FloatTensor(torch.from_numpy(input_high))).cuda()
+        input_low = Variable(torch.FloatTensor(torch.from_numpy(input_low))).to(self.device)
+        input_high= Variable(torch.FloatTensor(torch.from_numpy(input_high))).to(self.device)
         R_low, I_low   = self.DecomNet(input_low)
         R_high, I_high = self.DecomNet(input_high)
 
@@ -145,7 +146,7 @@ class RetinexNet(nn.Module):
         self.output_S       = R_low.detach().cpu() * I_delta_3.detach().cpu()
 
     def gradient(self, input_tensor, direction):
-        self.smooth_kernel_x = torch.FloatTensor([[0, 0], [-1, 1]]).view((1, 1, 2, 2)).cuda()
+        self.smooth_kernel_x = torch.FloatTensor([[0, 0], [-1, 1]]).view((1, 1, 2, 2)).to(self.device)
         self.smooth_kernel_y = torch.transpose(self.smooth_kernel_x, 2, 3)
 
         if direction == "x":
